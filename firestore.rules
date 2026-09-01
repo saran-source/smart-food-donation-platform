@@ -10,35 +10,59 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == userId;
     }
 
+    function hasRole(role) {
+      return signedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    }
+
     match /users/{userId} {
       allow read: if isOwner(userId);
       allow create: if isOwner(userId);
-      allow update: if isOwner(userId);
+      allow update: if isOwner(userId) && request.resource.data.role == resource.data.role;
       allow delete: if false;
     }
 
     match /donations/{donationId} {
       allow read: if signedIn();
-      allow create: if signedIn() && request.resource.data.donorId == request.auth.uid;
-      allow update: if signedIn() && resource.data.donorId == request.auth.uid;
-      allow delete: if signedIn() && resource.data.donorId == request.auth.uid;
+      allow create: if hasRole('DONOR') && request.resource.data.donorId == request.auth.uid;
+      allow update: if (
+        hasRole('DONOR') && resource.data.donorId == request.auth.uid
+      ) || (
+        hasRole('NGO') &&
+        resource.data.status == 'AVAILABLE' &&
+        request.resource.data.status == 'CLAIMED' &&
+        request.resource.data.claimedBy == request.auth.uid &&
+        request.resource.data.donorId == resource.data.donorId
+      );
+      allow delete: if hasRole('DONOR') && resource.data.donorId == request.auth.uid;
     }
 
     match /requests/{requestId} {
       allow read: if signedIn();
-      allow create: if signedIn() && request.resource.data.requesterId == request.auth.uid;
+      allow create: if (hasRole('RECIPIENT') || hasRole('NGO')) && request.resource.data.requesterId == request.auth.uid;
       allow update: if signedIn() && resource.data.requesterId == request.auth.uid;
       allow delete: if false;
     }
 
     match /pickups/{pickupId} {
-      allow read: if signedIn();
-      allow write: if false;
+      allow read: if signedIn() && (
+        resource.data.donorId == request.auth.uid ||
+        resource.data.ngoId == request.auth.uid ||
+        resource.data.volunteerId == request.auth.uid
+      );
+      allow create: if hasRole('NGO') && request.resource.data.ngoId == request.auth.uid;
+      allow update: if (
+        hasRole('NGO') && resource.data.ngoId == request.auth.uid
+      ) || (
+        hasRole('VOLUNTEER') && resource.data.volunteerId == request.auth.uid
+      );
+      allow delete: if false;
     }
 
     match /notifications/{notificationId} {
       allow read: if signedIn() && resource.data.userId == request.auth.uid;
-      allow write: if false;
+      allow update: if signedIn() && resource.data.userId == request.auth.uid;
+      allow create, delete: if false;
     }
 
     match /{document=**} {
