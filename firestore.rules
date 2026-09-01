@@ -17,7 +17,8 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if isOwner(userId);
-      allow create: if isOwner(userId);
+      // Public self-registration may create normal roles only. ADMIN must be provisioned server-side.
+      allow create: if isOwner(userId) && request.resource.data.role in ['DONOR', 'NGO', 'VOLUNTEER', 'RECIPIENT'];
       allow update: if isOwner(userId) && request.resource.data.role == resource.data.role;
       allow delete: if false;
     }
