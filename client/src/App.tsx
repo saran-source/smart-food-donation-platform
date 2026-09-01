@@ -7,6 +7,7 @@ import { CreateDonationPage } from './pages/CreateDonationPage';
 import { DonorDashboardPage } from './pages/DonorDashboardPage';
 import { NGODashboardPage } from './pages/NGODashboardPage';
 import { NearbyDonationsPage } from './pages/NearbyDonationsPage';
+import { VolunteerDashboardPage } from './pages/VolunteerDashboardPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 function AppRoutes() {
@@ -19,6 +20,7 @@ function AppRoutes() {
       <Route path="/ngo" element={<ProtectedRoute allowedRoles={['NGO']}><NGODashboardPage /></ProtectedRoute>} />
       <Route path="/nearby" element={<ProtectedRoute allowedRoles={['NGO', 'RECIPIENT']}><NearbyDonationsPage /></ProtectedRoute>} />
       <Route path="/donations/new" element={<ProtectedRoute allowedRoles={['DONOR']}><CreateDonationPage /></ProtectedRoute>} />
+      <Route path="/volunteer" element={<ProtectedRoute allowedRoles={['VOLUNTEER']}><VolunteerDashboardPage /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
