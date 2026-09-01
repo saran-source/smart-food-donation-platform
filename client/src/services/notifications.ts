@@ -1,4 +1,4 @@
-import { addDoc, collection, onSnapshot, orderBy, query, serverTimestamp, where } from 'firebase/firestore';
+import { addDoc, collection, doc, onSnapshot, orderBy, query, serverTimestamp, updateDoc, where } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
 export interface AppNotification {
@@ -16,6 +16,10 @@ export async function createNotification(input: Omit<AppNotification, 'id' | 'cr
     ...input,
     createdAt: serverTimestamp(),
   });
+}
+
+export async function markNotificationRead(notificationId: string): Promise<void> {
+  await updateDoc(doc(db, 'notifications', notificationId), { read: true });
 }
 
 export function subscribeToNotifications(userId: string, callback: (items: AppNotification[]) => void) {
