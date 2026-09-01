@@ -1,4 +1,4 @@
-import { addDoc, collection, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { addDoc, collection, doc, onSnapshot, orderBy, query, serverTimestamp, updateDoc, where } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import type { Pickup, PickupStatus } from '../types/pickup';
 
@@ -34,5 +34,17 @@ export async function assignVolunteer(pickupId: string, volunteerId: string): Pr
     volunteerId,
     status: 'ASSIGNED',
     updatedAt: serverTimestamp(),
+  });
+}
+
+export function subscribeToVolunteerPickups(volunteerId: string, callback: (items: Pickup[]) => void) {
+  const pickupsQuery = query(
+    collection(db, 'pickups'),
+    where('volunteerId', '==', volunteerId),
+    orderBy('createdAt', 'desc'),
+  );
+
+  return onSnapshot(pickupsQuery, (snapshot) => {
+    callback(snapshot.docs.map((item) => ({ id: item.id, ...item.data() }) as Pickup));
   });
 }
