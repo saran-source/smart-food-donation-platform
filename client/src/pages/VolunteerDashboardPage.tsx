@@ -1,37 +1,26 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { updatePickupStatus } from '../services/pickups';
+import { subscribeToVolunteerPickups, updatePickupStatus } from '../services/pickups';
+import { useAuth } from '../context/AuthContext';
 import type { PickupStatus } from '../types/pickup';
-
-interface DemoPickup {
-  id: string;
-  donation: string;
-  pickupAddress: string;
-  deliveryAddress: string;
-  pickupTime: string;
-  status: PickupStatus;
-}
-
-const demoPickup: DemoPickup = {
-  id: 'demo-pickup',
-  donation: '50 meal boxes',
-  pickupAddress: 'Chennai, Tamil Nadu',
-  deliveryAddress: 'Community Centre, Chennai',
-  pickupTime: 'Today, 6:00 PM',
-  status: 'ASSIGNED',
-};
+import type { Pickup } from '../services/pickups';
 
 export function VolunteerDashboardPage() {
-  const [pickup, setPickup] = useState(demoPickup);
-  const [saving, setSaving] = useState(false);
+  const { user } = useAuth();
+  const [pickups, setPickups] = useState<Pickup[]>([]);
+  const [savingId, setSavingId] = useState<string | null>(null);
 
-  async function moveTo(status: PickupStatus) {
-    setSaving(true);
+  useEffect(() => {
+    if (!user) return;
+    return subscribeToVolunteerPickups(user.uid, setPickups);
+  }, [user]);
+
+  async function moveTo(pickupId: string, status: PickupStatus) {
+    setSavingId(pickupId);
     try {
-      if (!pickup.id.startsWith('demo-')) await updatePickupStatus(pickup.id, status);
-      setPickup((current) => ({ ...current, status }));
+      await updatePickupStatus(pickupId, status);
     } finally {
-      setSaving(false);
+      setSavingId(null);
     }
   }
 
@@ -48,23 +37,29 @@ export function VolunteerDashboardPage() {
         <div>
           <span className="eyebrow">VOLUNTEER WORKSPACE</span>
           <h1>My pickups</h1>
-          <p>Manage assigned food pickups and keep delivery status up to date.</p>
+          <p>Live assignments from Firestore.</p>
         </div>
         <Link className="primary-action" to="/dashboard">Back to dashboard</Link>
       </header>
 
-      <article className="pickup-card">
-        <span className="status-badge">{pickup.status.replace('_', ' ')}</span>
-        <h2>{pickup.donation}</h2>
-        <p><strong>Pickup:</strong> {pickup.pickupAddress}</p>
-        <p><strong>Delivery:</strong> {pickup.deliveryAddress}</p>
-        <p><strong>Time:</strong> {pickup.pickupTime}</p>
-        {nextStatus[pickup.status] && (
-          <button disabled={saving} onClick={() => void moveTo(nextStatus[pickup.status]!)}>
-            {saving ? 'Updating…' : `Mark ${nextStatus[pickup.status]!.replace('_', ' ').toLowerCase()}`}
-          </button>
-        )}
-      </article>
+      {pickups.length === 0 ? (
+        <section className="empty-state"><h2>No assigned pickups</h2><p>New assignments will appear here automatically.</p></section>
+      ) : pickups.map((pickup) => {
+        const next = nextStatus[pickup.status];
+        return (
+          <article className="pickup-card" key={pickup.id}>
+            <span className="status-badge">{pickup.status.replace('_', ' ')}</span>
+            <h2>Donation #{pickup.donationId.slice(0, 8)}</h2>
+            <p><strong>Pickup:</strong> {pickup.pickupAddress}</p>
+            <p><strong>Delivery:</strong> {pickup.deliveryAddress}</p>
+            {next && (
+              <button disabled={savingId === pickup.id} onClick={() => void moveTo(pickup.id, next)}>
+                {savingId === pickup.id ? 'Updating…' : `Mark ${next.replace('_', ' ').toLowerCase()}`}
+              </button>
+            )}
+          </article>
+        );
+      })}
     </main>
   );
 }
