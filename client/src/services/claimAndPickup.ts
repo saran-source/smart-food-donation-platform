@@ -20,7 +20,7 @@ export async function claimAndCreatePickup({ donationId, ngoId, deliveryAddress 
     if (donation.status !== 'AVAILABLE') throw new Error('Donation is no longer available.');
 
     transaction.update(donationRef, {
-      status: 'PICKUP_ASSIGNED',
+      status: 'CLAIMED',
       claimedBy: ngoId,
       claimedAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
