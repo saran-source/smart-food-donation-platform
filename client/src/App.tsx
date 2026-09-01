@@ -1,38 +1,26 @@
-import { useState } from 'react';
+import { Navigate, Route, Routes } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
+import { DashboardPage } from './pages/DashboardPage';
 
-const roles = [
-  { name: 'Donor', description: 'Share safe surplus food with people who need it.' },
-  { name: 'NGO', description: 'Find and coordinate food donations in your area.' },
-  { name: 'Volunteer', description: 'Help move donations from donors to communities.' },
-  { name: 'Recipient', description: 'Request food support for your community.' },
-];
+function ProtectedRoute() {
+  const { user, loading } = useAuth();
+  if (loading) return <main className="app-shell"><p>Loading your workspace…</p></main>;
+  return user ? <DashboardPage /> : <Navigate to="/login" replace />;
+}
+
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/dashboard" element={<ProtectedRoute />} />
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
+  );
+}
 
 export function App() {
-  const [selectedRole, setSelectedRole] = useState('Donor');
-
-  return (
-    <main className="app-shell">
-      <section className="hero">
-        <span className="eyebrow">SMART FOOD DONATION PLATFORM</span>
-        <h1>Turn surplus food into meaningful meals.</h1>
-        <p>
-          A connected platform for donors, NGOs, volunteers, and communities to
-          coordinate food donations efficiently.
-        </p>
-        <div className="role-grid" aria-label="Choose your role">
-          {roles.map((role) => (
-            <button
-              className={selectedRole === role.name ? 'role-card active' : 'role-card'}
-              key={role.name}
-              onClick={() => setSelectedRole(role.name)}
-            >
-              <strong>{role.name}</strong>
-              <span>{role.description}</span>
-            </button>
-          ))}
-        </div>
-        <p className="status">Selected role: <strong>{selectedRole}</strong></p>
-      </section>
-    </main>
-  );
+  return <AuthProvider><AppRoutes /></AuthProvider>;
 }
