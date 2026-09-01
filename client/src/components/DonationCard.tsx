@@ -24,7 +24,7 @@ export function DonationCard({ donation, match, onSelect }: DonationCardProps) {
       await claimAndCreatePickup({
         donationId: donation.id,
         ngoId: user.uid,
-        deliveryAddress: profile.address || 'NGO delivery location',
+        deliveryAddress: profile.organizationName || 'NGO delivery location',
       });
       setClaimed(true);
     } catch (claimError) {
