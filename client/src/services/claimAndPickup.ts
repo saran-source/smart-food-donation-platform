@@ -1,4 +1,4 @@
-import { doc, runTransaction, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, runTransaction, serverTimestamp } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
 export interface ClaimAndPickupInput {
@@ -10,7 +10,7 @@ export interface ClaimAndPickupInput {
 /** Atomically claims an available donation and creates its initial pickup record. */
 export async function claimAndCreatePickup({ donationId, ngoId, deliveryAddress }: ClaimAndPickupInput) {
   const donationRef = doc(db, 'donations', donationId);
-  const pickupRef = doc(collectionRef('pickups'));
+  const pickupRef = doc(collection(db, 'pickups'));
 
   await runTransaction(db, async (transaction) => {
     const donationSnapshot = await transaction.get(donationRef);
@@ -40,11 +40,4 @@ export async function claimAndCreatePickup({ donationId, ngoId, deliveryAddress 
   });
 
   return pickupRef.id;
-}
-
-function collectionRef(collectionName: string) {
-  return doc(db, collectionName).withConverter({
-    toFirestore: (value: Record<string, unknown>) => value,
-    fromFirestore: (snapshot) => snapshot.data() as Record<string, unknown>,
-  });
 }
