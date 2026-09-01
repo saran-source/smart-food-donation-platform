@@ -8,6 +8,9 @@ import { DonorDashboardPage } from './pages/DonorDashboardPage';
 import { NGODashboardPage } from './pages/NGODashboardPage';
 import { NearbyDonationsPage } from './pages/NearbyDonationsPage';
 import { VolunteerDashboardPage } from './pages/VolunteerDashboardPage';
+import { RecipientDashboardPage } from './pages/RecipientDashboardPage';
+import { RequestFoodPage } from './pages/RequestFoodPage';
+import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 function AppRoutes() {
@@ -21,6 +24,9 @@ function AppRoutes() {
       <Route path="/nearby" element={<ProtectedRoute allowedRoles={['NGO', 'RECIPIENT']}><NearbyDonationsPage /></ProtectedRoute>} />
       <Route path="/donations/new" element={<ProtectedRoute allowedRoles={['DONOR']}><CreateDonationPage /></ProtectedRoute>} />
       <Route path="/volunteer" element={<ProtectedRoute allowedRoles={['VOLUNTEER']}><VolunteerDashboardPage /></ProtectedRoute>} />
+      <Route path="/recipient" element={<ProtectedRoute allowedRoles={['RECIPIENT']}><RecipientDashboardPage /></ProtectedRoute>} />
+      <Route path="/requests/new" element={<ProtectedRoute allowedRoles={['RECIPIENT']}><RequestFoodPage /></ProtectedRoute>} />
+      <Route path="/admin" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminDashboardPage /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
