@@ -7,6 +7,13 @@ interface LocationPickerProps {
   onChange: (location: GeoPointData) => void;
 }
 
+interface MapClickEvent {
+  latLng: {
+    lat: () => number;
+    lng: () => number;
+  } | null;
+}
+
 export function LocationPicker({ value, onChange }: LocationPickerProps) {
   const mapElement = useRef<HTMLDivElement>(null);
   const [error, setError] = useState('');
@@ -46,7 +53,7 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
           });
         });
 
-        map.addListener('click', (event) => {
+        map.addListener('click', (event: MapClickEvent) => {
           if (!event.latLng || !marker) return;
           const latitude = event.latLng.lat();
           const longitude = event.latLng.lng();
