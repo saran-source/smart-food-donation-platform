@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { subscribeToVolunteerPickups, updatePickupStatus } from '../services/pickups';
 import { useAuth } from '../context/AuthContext';
-import type { PickupStatus } from '../types/pickup';
-import type { Pickup } from '../services/pickups';
+import type { Pickup, PickupStatus } from '../types/pickup';
 
 export function VolunteerDashboardPage() {
   const { user } = useAuth();
@@ -24,12 +23,20 @@ export function VolunteerDashboardPage() {
     }
   }
 
-  const nextStatus: Partial<Record<PickupStatus, PickupStatus>> = {
-    ASSIGNED: 'ACCEPTED',
-    ACCEPTED: 'PICKED_UP',
-    PICKED_UP: 'IN_TRANSIT',
-    IN_TRANSIT: 'DELIVERED',
-  };
+  function getNextStatus(status: PickupStatus): PickupStatus | undefined {
+    switch (status) {
+      case 'ASSIGNED':
+        return 'ACCEPTED';
+      case 'ACCEPTED':
+        return 'PICKED_UP';
+      case 'PICKED_UP':
+        return 'IN_TRANSIT';
+      case 'IN_TRANSIT':
+        return 'DELIVERED';
+      default:
+        return undefined;
+    }
+  }
 
   return (
     <main className="dashboard-page">
@@ -45,7 +52,7 @@ export function VolunteerDashboardPage() {
       {pickups.length === 0 ? (
         <section className="empty-state"><h2>No assigned pickups</h2><p>New assignments will appear here automatically.</p></section>
       ) : pickups.map((pickup) => {
-        const next = nextStatus[pickup.status];
+        const next = getNextStatus(pickup.status);
         return (
           <article className="pickup-card" key={pickup.id}>
             <span className="status-badge">{pickup.status.replace('_', ' ')}</span>
