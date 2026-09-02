@@ -2,6 +2,8 @@ import { addDoc, collection, doc, onSnapshot, orderBy, query, serverTimestamp, u
 import { db } from '../config/firebase';
 import type { Pickup, PickupStatus } from '../types/pickup';
 
+export type { Pickup, PickupStatus } from '../types/pickup';
+
 export interface CreatePickupInput {
   donationId: string;
   donorId: string;
