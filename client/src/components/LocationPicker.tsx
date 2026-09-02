@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { getGoogleMapsLoader } from '../services/maps';
+import { configureGoogleMaps, importLibrary } from '../services/maps';
 import type { GeoPointData } from '../types/donation';
 
 interface LocationPickerProps {
@@ -13,23 +13,24 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
 
   useEffect(() => {
     let cancelled = false;
-    let marker: google.maps.Marker | undefined;
+    let marker: any;
 
     async function loadMap() {
       try {
-        const loader = getGoogleMapsLoader();
-        const googleMaps = await loader.load();
+        configureGoogleMaps();
+        const { Map } = await importLibrary('maps');
+        const { Marker } = await importLibrary('marker');
         const center = value
           ? { lat: value.latitude, lng: value.longitude }
           : { lat: 13.0827, lng: 80.2707 };
 
         if (cancelled || !mapElement.current) return;
-        const map = new googleMaps.maps.Map(mapElement.current, {
+        const map = new Map(mapElement.current, {
           center,
           zoom: 12,
         });
 
-        marker = new googleMaps.maps.Marker({
+        marker = new Marker({
           map,
           position: center,
           draggable: true,
@@ -45,7 +46,7 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
           });
         });
 
-        map.addListener('click', (event: google.maps.MapMouseEvent) => {
+        map.addListener('click', (event) => {
           if (!event.latLng || !marker) return;
           const latitude = event.latLng.lat();
           const longitude = event.latLng.lng();
