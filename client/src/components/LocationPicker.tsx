@@ -13,38 +13,43 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
 
   useEffect(() => {
     let cancelled = false;
-    let marker: google.maps.marker.AdvancedMarkerElement | undefined;
+    let marker: google.maps.Marker | undefined;
 
     async function loadMap() {
       try {
         const loader = getGoogleMapsLoader();
-        const { Map } = await loader.importLibrary('maps') as google.maps.MapsLibrary;
-        const { AdvancedMarkerElement } = await loader.importLibrary('marker') as google.maps.MarkerLibrary;
-        const center = value ? { lat: value.latitude, lng: value.longitude } : { lat: 13.0827, lng: 80.2707 };
+        const googleMaps = await loader.load();
+        const center = value
+          ? { lat: value.latitude, lng: value.longitude }
+          : { lat: 13.0827, lng: 80.2707 };
 
         if (cancelled || !mapElement.current) return;
-        const map = new Map(mapElement.current, {
+        const map = new googleMaps.maps.Map(mapElement.current, {
           center,
           zoom: 12,
-          mapId: 'FOOD_DONATION_MAP',
         });
 
-        marker = new AdvancedMarkerElement({ map, position: center, gmpDraggable: true });
+        marker = new googleMaps.maps.Marker({
+          map,
+          position: center,
+          draggable: true,
+        });
+
         marker.addListener('dragend', () => {
-          const position = marker?.position;
-          if (!position || typeof position.lat !== 'number' || typeof position.lng !== 'number') return;
+          const position = marker?.getPosition();
+          if (!position) return;
           onChange({
-            latitude: position.lat,
-            longitude: position.lng,
+            latitude: position.lat(),
+            longitude: position.lng(),
             address: value?.address ?? 'Selected map location',
           });
         });
 
         map.addListener('click', (event: google.maps.MapMouseEvent) => {
-          if (!event.latLng) return;
+          if (!event.latLng || !marker) return;
           const latitude = event.latLng.lat();
           const longitude = event.latLng.lng();
-          marker!.position = { lat: latitude, lng: longitude };
+          marker.setPosition({ lat: latitude, lng: longitude });
           onChange({
             latitude,
             longitude,
@@ -57,7 +62,10 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
     }
 
     void loadMap();
-    return () => { cancelled = true; marker?.map && (marker.map = null); };
+    return () => {
+      cancelled = true;
+      marker?.setMap(null);
+    };
   }, [onChange, value]);
 
   return (
