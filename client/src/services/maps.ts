@@ -7,7 +7,7 @@ export function configureGoogleMaps() {
   if (!apiKey) throw new Error('VITE_GOOGLE_MAPS_API_KEY is not configured.');
 
   if (!configured) {
-    setOptions({ apiKey, version: 'weekly' });
+    setOptions({ key: apiKey, v: 'weekly' });
     configured = true;
   }
 }
