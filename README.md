@@ -63,3 +63,10 @@ This repository contains the React application route structure, authentication c
 ## License
 
 No license has been selected yet. Until one is added, all rights are reserved.
+
+
+## Engineering documentation
+
+- [Architecture notes](docs/ARCHITECTURE.md)
+- [Implementation roadmap](docs/ROADMAP.md)
+- [Testing and release guide](docs/TESTING_GUIDE.md)
